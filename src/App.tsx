@@ -20,7 +20,8 @@ const TABS = [
 type ToastAction = {label: string; onClick: () => void};
 
 export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
-  const initialTab = isEditorScreen ? 'create' : editorLaunch?.tab || 'scan';
+  const initialTab =
+    isEditorScreen || Capacitor.getPlatform() === 'web' ? 'create' : editorLaunch?.tab || 'scan';
   const [tab, setTab] = useState<Tab>(initialTab);
   const [visited, setVisited] = useState<Tab[]>([initialTab]);
   const [entries, setEntries] = useState<Entry[]>([]);
