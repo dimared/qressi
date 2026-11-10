@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">QRessi</string>
+    <string name="title_activity_main">QRessi</string>
+    <string name="package_name">app.qressi.mobile</string>
+    <string name="custom_url_scheme">app.qressi.mobile</string>
+</resources>

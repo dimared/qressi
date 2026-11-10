@@ -1,0 +1,38 @@
+# Dependencies and generated assets
+node_modules/
+dist/
+dist-native/
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/capacitor-cordova-android-plugins/
+android/app/src/main/assets/
+android/app/src/main/res/xml/config.xml
+
+# Machine-specific configuration and credentials
+.env
+.env.*
+!.env.example
+.npmrc
+android/local.properties
+android/keystore.properties
+android/signing.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist
+
+# Editors, logs and build artifacts
+.idea/
+.vscode/
+.DS_Store
+*.log
+*.apk
+*.aab
+*.hprof
+
+.pnpm-store/
