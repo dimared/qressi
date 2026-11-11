@@ -559,6 +559,34 @@ input[type='color'] {
   color: var(--danger);
   margin: 10px 0 0;
 }
+.image-drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: #171717e8;
+  pointer-events: none;
+}
+.image-drop-overlay > div {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 440px);
+  padding: 44px 20px;
+  border: 2px dashed var(--accent);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: center;
+}
+.image-drop-overlay svg {
+  color: var(--accent);
+}
+.image-drop-overlay span {
+  color: var(--muted);
+}
 .scan-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1,11 +1,12 @@
-import {Button} from '@gravity-ui/uikit';
-import {Check, Clock3, Info, Plus, ScanLine, X} from 'lucide-react';
-import {lazy, Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import {Capacitor} from '@capacitor/core';
+import {Button} from '@gravity-ui/uikit';
+import {Check, Clock3, ImagePlus, Info, Plus, ScanLine, X} from 'lucide-react';
+import {lazy, Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import {makeEntry, mergeEntry} from './data';
 import {EditorScreen, isEditorScreen, separateEditor, type EditorLaunch} from './editorScreen';
 import {loadHistory, saveHistory} from './storage';
 import type {CodeFormat, EditorDraft, Entry, Tab} from './types';
+import {useImageDrop} from './useImageDrop';
 
 const Create = lazy(() => import('./Create'));
 const Detail = lazy(() => import('./Detail'));
@@ -18,10 +19,11 @@ const TABS = [
   {id: 'history', title: 'История', icon: Clock3},
 ] as const;
 type ToastAction = {label: string; onClick: () => void};
+const web = Capacitor.getPlatform() === 'web';
 
 export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
-  const initialTab =
-    isEditorScreen || Capacitor.getPlatform() === 'web' ? 'create' : editorLaunch?.tab || 'scan';
+  const homeTab = web ? 'create' : 'scan';
+  const initialTab = isEditorScreen ? 'create' : editorLaunch?.tab || homeTab;
   const [tab, setTab] = useState<Tab>(initialTab);
   const [visited, setVisited] = useState<Tab[]>([initialTab]);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -43,6 +45,7 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
   const [toastAction, setToastAction] = useState<ToastAction>();
   const [about, setAbout] = useState(false);
   const [privacy, setPrivacy] = useState(false);
+  const [droppedImage, setDroppedImage] = useState<File>();
   const toastTimer = useRef(0);
   const loading = useRef<Promise<void> | null>(null);
   const mutation = useRef(Promise.resolve());
@@ -101,6 +104,19 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
     },
     [notify],
   );
+  const openDroppedImage = useCallback(
+    (file: File) => {
+      setSelected(undefined);
+      setAbout(false);
+      setPrivacy(false);
+      setDroppedImage(file);
+      navigate('scan');
+    },
+    [navigate],
+  );
+  const invalidDrop = useCallback(() => notify('Перетащите файл изображения с QR-кодом.'), [notify]);
+  const clearDroppedImage = useCallback(() => setDroppedImage(undefined), []);
+  const draggingImage = useImageDrop(web, openDroppedImage, invalidDrop);
 
   useEffect(() => {
     if (!editorOpening) return;
@@ -273,7 +289,7 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            navigate('scan');
+            navigate(homeTab);
           }}
           aria-label="QRessi — главная"
         >
@@ -312,6 +328,8 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
             {visited.includes('scan') && (
               <Scan
                 active={tab === 'scan' && !editorOpening && !current && !about}
+                droppedImage={droppedImage}
+                onImageHandled={clearDroppedImage}
                 onFound={scanFound}
                 notify={notify}
               />
@@ -358,6 +376,15 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
           </button>
         ))}
       </nav>
+      {draggingImage && (
+        <div className="image-drop-overlay" aria-hidden="true">
+          <div>
+            <ImagePlus size={38} />
+            <strong>Отпустите изображение с QR</strong>
+            <span>QRessi прочитает код</span>
+          </div>
+        </div>
+      )}
       {current && (
         <Suspense fallback={null}>
           <Detail

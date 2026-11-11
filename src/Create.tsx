@@ -273,6 +273,9 @@ export default function Create({
     <section className="page create-page" aria-label="Создать QR">
       <div className="page-heading">
         <h1>Создать QR</h1>
+        {Capacitor.getPlatform() === 'web' && (
+          <p className="hint desktop-hint">Чтобы прочитать QR, перетащите его изображение на страницу.</p>
+        )}
       </div>
       <div className="editor-layout">
         <section className="card content-card">

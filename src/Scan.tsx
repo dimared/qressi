@@ -1,7 +1,7 @@
 import {Capacitor} from '@capacitor/core';
 import {Button, Switch} from '@gravity-ui/uikit';
 import {Camera, ImagePlus, Minus, Plus, ScanLine, Square, X, Zap} from 'lucide-react';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {vibrateOnRead} from './cameraViewport';
 import {
   cameraError,
@@ -18,10 +18,14 @@ const native = Capacitor.isNativePlatform();
 
 export default function Scan({
   active,
+  droppedImage,
+  onImageHandled,
   onFound,
   notify,
 }: {
   active: boolean;
+  droppedImage?: File;
+  onImageHandled: () => void;
   onFound: (data: string, save: boolean, format?: CodeFormat) => Promise<void>;
   notify: Notify;
 }) {
@@ -47,9 +51,10 @@ export default function Scan({
   const privateRef = useRef(privateScan);
   const permissionPending = useRef(false);
   const delivering = useRef(false);
+  const readingImage = useRef(false);
   foundCallback.current = onFound;
   privateRef.current = privateScan;
-  const running = active && foreground && cameraEnabled && !captured && !busy && !choices.length;
+  const running = active && foreground && cameraEnabled && !captured && !busy && !choices.length && !droppedImage;
 
   function openCamera() {
     setCameraIssue('');
@@ -58,7 +63,7 @@ export default function Scan({
     setCameraEnabled(true);
   }
 
-  async function deliver(code: ScannedCode, save: boolean) {
+  const deliver = useCallback(async (code: ScannedCode, save: boolean) => {
     if (delivering.current) return;
     delivering.current = true;
     setCaptured(true);
@@ -68,7 +73,7 @@ export default function Scan({
     } finally {
       delivering.current = false;
     }
-  }
+  }, []);
 
   useEffect(() => {
     if (!active) return;
@@ -199,25 +204,37 @@ export default function Scan({
     }
   }
 
-  async function readFile(file?: File) {
-    if (!file || busy) return;
-    if (file.size > 20 * 1024 * 1024) {
-      notify('Выберите изображение размером до 20 МБ.');
-      return;
-    }
-    setBusy(true);
-    const save = !privateRef.current;
-    try {
-      const results = await readCodesFromImage(file);
-      if (!results.length) notify('Код не найден. Попробуйте обрезать картинку ближе к нему.');
-      else if (results.length === 1) await deliver(results[0], save);
-      else setChoices(results);
-    } catch (error) {
-      notify(cameraError(error));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const readFile = useCallback(
+    async (file?: File) => {
+      if (!file || readingImage.current) return;
+      if (file.size > 20 * 1024 * 1024) {
+        notify('Выберите изображение размером до 20 МБ.');
+        return;
+      }
+      readingImage.current = true;
+      setChoices([]);
+      setBusy(true);
+      const save = !privateRef.current;
+      try {
+        const results = await readCodesFromImage(file);
+        if (!results.length) notify('Код не найден. Попробуйте обрезать картинку ближе к нему.');
+        else if (results.length === 1) await deliver(results[0], save);
+        else setChoices(results);
+      } catch (error) {
+        notify(cameraError(error));
+      } finally {
+        readingImage.current = false;
+        setBusy(false);
+      }
+    },
+    [deliver, notify],
+  );
+
+  useEffect(() => {
+    if (!active || busy || !droppedImage) return;
+    onImageHandled();
+    void readFile(droppedImage);
+  }, [active, busy, droppedImage, onImageHandled, readFile]);
 
   useEffect(() => {
     if (!active) return;
@@ -230,7 +247,7 @@ export default function Scan({
     };
     window.addEventListener('paste', paste);
     return () => window.removeEventListener('paste', paste);
-  }, [active, busy, privateScan]);
+  }, [active, readFile]);
 
   return (
     <section className="page scan-page" aria-label="Сканировать QR">
@@ -243,11 +260,15 @@ export default function Scan({
             className="scan-window"
             ref={viewportRef}
             aria-label="Окно камеры"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              event.preventDefault();
-              void readFile(event.dataTransfer.files[0]);
-            }}
+            onDragOver={native ? (event) => event.preventDefault() : undefined}
+            onDrop={
+              native
+                ? (event) => {
+                    event.preventDefault();
+                    void readFile(event.dataTransfer.files[0]);
+                  }
+                : undefined
+            }
           >
             {!native && <video ref={videoRef} muted playsInline autoPlay aria-hidden={!running} />}
             {running ? (
@@ -356,7 +377,11 @@ export default function Scan({
               event.target.value = '';
             }}
           />
-          <p className="hint desktop-hint">Или перетащите картинку сюда / вставьте из буфера</p>
+          <p className="hint desktop-hint">
+            {native
+              ? 'Или перетащите картинку сюда / вставьте из буфера'
+              : 'Или перетащите изображение на страницу / вставьте из буфера'}
+          </p>
           {cameraIssue && (
             <div className="camera-error" role="alert">
               <p>{cameraIssue}</p>
