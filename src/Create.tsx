@@ -500,7 +500,7 @@ export default function Create({
             <div className="segmented center-modes" role="group" aria-label="Содержимое в центре QR">
               {(
                 [
-                  {id: 'none', label: 'Нет'},
+                  {id: 'none', label: 'Ничего'},
                   {id: 'image', label: 'Картинка'},
                   {id: 'text', label: 'Текст'},
                 ] as const

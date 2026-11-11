@@ -1,16 +1,6 @@
+import {Capacitor} from '@capacitor/core';
 import {Button, TextInput} from '@gravity-ui/uikit';
-import {
-  ArrowDownToLine,
-  ArrowLeft,
-  ArrowUpRight,
-  Clock3,
-  FileText,
-  Heart,
-  Link,
-  Search,
-  Upload,
-  Wifi,
-} from 'lucide-react';
+import {ArrowDownToLine, ArrowLeft, Clock3, FileText, Heart, Link, Search, Upload, Wifi} from 'lucide-react';
 import {useMemo, useRef, useState} from 'react';
 import {validateBackup} from './data';
 import {saveFile} from './storage';
@@ -76,7 +66,7 @@ export default function History({
     try {
       const imported = validateBackup(JSON.parse(await file.text()));
       await onImport(imported);
-      notify(`Импортировано записей: ${imported.length}`);
+      notify(`Восстановлено записей: ${imported.length}`);
     } catch (e) {
       notify(e instanceof Error ? e.message : 'Не удалось прочитать копию.');
     } finally {
@@ -94,8 +84,8 @@ export default function History({
           size="xl"
           value={query}
           onUpdate={setQuery}
-          placeholder="Найти код, ссылку или контакт"
-          startContent={<Search size={19} />}
+          placeholder="Поиск"
+          startContent={<Search className="history-search-icon" size={19} aria-hidden="true" />}
           controlProps={{'aria-label': 'Поиск по истории'}}
         />
         <div className="backup-actions">
@@ -107,7 +97,8 @@ export default function History({
               void backup();
             }}
           >
-            <ArrowDownToLine size={17} /> Копия
+            <ArrowDownToLine size={17} />{' '}
+            {Capacitor.isNativePlatform() ? 'Сохранить историю' : 'Скачать историю'}
           </Button>
           <Button
             view="outlined"
@@ -115,7 +106,7 @@ export default function History({
             disabled={!loaded || busy}
             onClick={() => fileInput.current?.click()}
           >
-            <Upload size={17} /> Импорт
+            <Upload size={17} /> Восстановить историю
           </Button>
         </div>
         <input
@@ -195,7 +186,6 @@ export default function History({
                   </small>
                 </span>
                 {entry.favorite && <Heart size={17} className="favorite-heart" fill="currentColor" />}
-                <ArrowUpRight size={18} className="history-arrow" />
               </SwipeHistoryRow>
             );
           })}

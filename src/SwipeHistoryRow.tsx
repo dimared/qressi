@@ -24,7 +24,7 @@ export default function SwipeHistoryRow({
   const suppressUntil = useRef(0);
   const removing = useRef(false);
   const rowRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const itemRef = useRef<HTMLDivElement>(null);
   const animations = useRef<Animation[]>([]);
   useEffect(() => () => animations.current.forEach((animation) => animation.cancel()), []);
 
@@ -34,11 +34,11 @@ export default function SwipeHistoryRow({
     setDeleting(true);
     try {
       const row = rowRef.current,
-        button = buttonRef.current;
-      if (row && button && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        const slide = button.animate(
+        item = itemRef.current;
+      if (row && item && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const slide = item.animate(
           [
-            {transform: getComputedStyle(button).transform, opacity: 1},
+            {transform: getComputedStyle(item).transform, opacity: 1},
             {transform: 'translateX(-100%)', opacity: 0},
           ],
           {duration: 210, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards'},
@@ -75,7 +75,8 @@ export default function SwipeHistoryRow({
     if (event.currentTarget.hasPointerCapture(event.pointerId))
       event.currentTarget.releasePointerCapture(event.pointerId);
     if (current.locked) suppressUntil.current = performance.now() + 500;
-    const threshold = Math.max(72, Math.min(110, event.currentTarget.clientWidth * 0.25));
+    const width = itemRef.current?.clientWidth ?? event.currentTarget.clientWidth;
+    const threshold = Math.max(72, Math.min(110, width * 0.25));
     if (!cancelled && current.locked && current.distance >= threshold) {
       void remove();
     } else setOffset(0);
@@ -87,60 +88,75 @@ export default function SwipeHistoryRow({
         <Trash2 size={20} />
         <span>Удалить</span>
       </div>
-      <button
-        ref={buttonRef}
+      <div
+        ref={itemRef}
         className={`history-item ${dragging ? 'is-dragging' : ''}`}
         style={{transform: `translateX(${-offset}px)`}}
-        disabled={deleting}
-        aria-keyshortcuts="Delete"
-        aria-label={title}
-        onClick={(event) => {
-          if (performance.now() < suppressUntil.current) {
-            event.preventDefault();
-            return;
-          }
-          onOpen();
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Delete') {
-            event.preventDefault();
-            void remove();
-          }
-        }}
-        onPointerDown={(event) => {
-          if (event.button !== 0 || removing.current) return;
-          gesture.current = {
-            id: event.pointerId,
-            x: event.clientX,
-            y: event.clientY,
-            distance: 0,
-            locked: false,
-            vertical: false,
-          };
-        }}
-        onPointerMove={(event) => {
-          const current = gesture.current;
-          if (!current || current.id !== event.pointerId || current.vertical) return;
-          const dx = event.clientX - current.x,
-            dy = event.clientY - current.y;
-          if (!current.locked) {
-            if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) {
-              current.vertical = true;
+      >
+        <button
+          type="button"
+          className="history-open"
+          disabled={deleting}
+          aria-keyshortcuts="Delete"
+          aria-label={title}
+          onClick={(event) => {
+            if (performance.now() < suppressUntil.current) {
+              event.preventDefault();
               return;
             }
-            if (dx >= -10 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
-            current.locked = true;
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setDragging(true);
-          }
-          current.distance = Math.max(0, -dx);
-          setOffset(Math.min(140, current.distance));
-        }}
-        onPointerUp={(event) => finish(event)}
-        onPointerCancel={(event) => finish(event, true)}
-      >
-        {children}
-      </button>
+            onOpen();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Delete') {
+              event.preventDefault();
+              void remove();
+            }
+          }}
+          onPointerDown={(event) => {
+            if (event.button !== 0 || removing.current) return;
+            gesture.current = {
+              id: event.pointerId,
+              x: event.clientX,
+              y: event.clientY,
+              distance: 0,
+              locked: false,
+              vertical: false,
+            };
+          }}
+          onPointerMove={(event) => {
+            const current = gesture.current;
+            if (!current || current.id !== event.pointerId || current.vertical) return;
+            const dx = event.clientX - current.x,
+              dy = event.clientY - current.y;
+            if (!current.locked) {
+              if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) {
+                current.vertical = true;
+                return;
+              }
+              if (dx >= -10 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+              current.locked = true;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setDragging(true);
+            }
+            current.distance = Math.max(0, -dx);
+            setOffset(Math.min(140, current.distance));
+          }}
+          onPointerUp={(event) => finish(event)}
+          onPointerCancel={(event) => finish(event, true)}
+        >
+          {children}
+        </button>
+        <button
+          type="button"
+          className="history-delete"
+          aria-label={`Удалить «${title}»`}
+          title="Удалить"
+          disabled={deleting}
+          onClick={() => void remove()}
+        >
+          <Trash2 size={18} aria-hidden="true" />
+        </button>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,14 @@
 
 <img src="public/icon-192.png" alt="QRessi" width="96" height="96" />
 
+[![Сборка APK](https://github.com/dimared/qressi/actions/workflows/android.yml/badge.svg?branch=master)](https://github.com/dimared/qressi/actions/workflows/android.yml)
+[![Публикация веб-версии](https://github.com/dimared/qressi/actions/workflows/pages.yml/badge.svg?branch=master)](https://github.com/dimared/qressi/actions/workflows/pages.yml)
+[![Версия в master](https://img.shields.io/github/package-json/v/dimared/qressi/master?label=version)](package.json)
+[![Последний коммит](https://img.shields.io/github/last-commit/dimared/qressi/master)](https://github.com/dimared/qressi/commits/master/)
+[![Лицензия MIT](https://img.shields.io/github/license/dimared/qressi)](LICENSE)
+
+[![Открыть веб-версию](https://img.shields.io/badge/Открыть_веб--версию-2563eb)](https://dimared.github.io/qressi/)
+
 Сканер и редактор QR-кодов для Android с веб-версией. React, TypeScript, Gravity UI, Capacitor и AI. Без аккаунта и собственного сервера.
 
 AI помогал при разработке кода и иконки.

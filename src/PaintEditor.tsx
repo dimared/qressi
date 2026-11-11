@@ -61,7 +61,7 @@ export default function PaintEditor({
               Градиент
             </button>
           </div>
-          {!gradient && (
+          {!gradient ? (
             <div className="color-row">
               {presets.map((color) => (
                 <button
@@ -75,19 +75,27 @@ export default function PaintEditor({
                   {value.color === color && <Check size={17} />}
                 </button>
               ))}
+              <button
+                className="paint-color palette-picker"
+                onClick={() => setEditing('start')}
+                aria-label={`Настроить ${title.toLowerCase()}`}
+                title={value.color.toUpperCase()}
+              >
+                <i style={{background: value.color}} />
+                <SlidersHorizontal size={16} />
+              </button>
             </div>
-          )}
-          <div className="paint-colors">
-            <button
-              className="paint-color"
-              onClick={() => setEditing('start')}
-              aria-label={`Настроить ${title.toLowerCase()}${gradient ? ': первый цвет' : ''}`}
-            >
-              <i style={{background: value.color}} />
-              <span>{gradient ? 'Цвет 1' : value.color.toUpperCase()}</span>
-              <SlidersHorizontal size={16} />
-            </button>
-            {gradient && (
+          ) : (
+            <div className="paint-colors">
+              <button
+                className="paint-color"
+                onClick={() => setEditing('start')}
+                aria-label={`Настроить ${title.toLowerCase()}: первый цвет`}
+              >
+                <i style={{background: value.color}} />
+                <span>Цвет 1</span>
+                <SlidersHorizontal size={16} />
+              </button>
               <button
                 className="paint-color"
                 onClick={() => setEditing('end')}
@@ -97,8 +105,8 @@ export default function PaintEditor({
                 <span>Цвет 2</span>
                 <SlidersHorizontal size={16} />
               </button>
-            )}
-          </div>
+            </div>
+          )}
           {gradient && (
             <div className="gradient-options">
               <Select

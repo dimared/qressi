@@ -1,6 +1,6 @@
 import {Capacitor} from '@capacitor/core';
 import {Button} from '@gravity-ui/uikit';
-import {Check, Clock3, ImagePlus, Info, Plus, ScanLine, X} from 'lucide-react';
+import {Check, Clock3, Github, Globe, ImagePlus, Info, Plus, ScanLine, X} from 'lucide-react';
 import {lazy, Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import {makeEntry, mergeEntry} from './data';
 import {EditorScreen, isEditorScreen, separateEditor, type EditorLaunch} from './editorScreen';
@@ -280,9 +280,10 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
       selected);
   const saved = !!current && entries.some((entry) => entry.id === current.id);
   const closeDetail = useCallback(() => setSelected(undefined), []);
+  const androidScan = separateEditor && tab === 'scan';
 
   return (
-    <div className="app-shell">
+    <div className={androidScan ? 'app-shell android-scan' : 'app-shell'}>
       <header className="app-header">
         <a
           className="brand"
@@ -311,9 +312,22 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
             </button>
           ))}
         </nav>
-        <Button view="flat" size="l" aria-label="О приложении" onClick={() => setAbout(true)}>
-          <Info size={20} />
-        </Button>
+        <div className="header-actions">
+          <Button
+            view="flat"
+            size="l"
+            href={web ? 'https://github.com/dimared/qressi' : 'https://dimared.github.io/qressi/'}
+            target={web ? '_blank' : undefined}
+            rel={web ? 'noopener noreferrer' : undefined}
+            aria-label={web ? 'QRessi на GitHub' : 'Открыть сайт QRessi'}
+            title={web ? 'QRessi на GitHub' : 'Открыть сайт QRessi'}
+          >
+            {web ? <Github size={20} /> : <Globe size={20} />}
+          </Button>
+          <Button view="flat" size="l" aria-label="О приложении" onClick={() => setAbout(true)}>
+            <Info size={20} />
+          </Button>
+        </div>
       </header>
       <main>
         <Suspense
@@ -324,7 +338,7 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
             </div>
           }
         >
-          <div hidden={tab !== 'scan'}>
+          <div className="scan-screen" hidden={tab !== 'scan'}>
             {visited.includes('scan') && (
               <Scan
                 active={tab === 'scan' && !editorOpening && !current && !about}

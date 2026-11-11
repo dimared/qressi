@@ -1,6 +1,6 @@
 import {Capacitor, registerPlugin} from '@capacitor/core';
 
-type PreviewBounds = {left: number; top: number; width: number; height: number; viewportWidth: number};
+type PreviewBounds = {left: number; top: number; width: number; height: number; scale: number};
 const ScannerTools = registerPlugin<{
   setPreviewBounds: (bounds: PreviewBounds) => Promise<void>;
   vibrate: () => Promise<void>;
@@ -19,14 +19,15 @@ export function vibrateOnRead(): void {
 }
 
 export function prepareCameraViewport(element: HTMLElement) {
+  const viewport = window.visualViewport;
   function measure(): PreviewBounds {
     const rect = element.getBoundingClientRect();
     return {
-      left: rect.left,
-      top: rect.top,
+      left: rect.left - (viewport?.offsetLeft ?? 0),
+      top: rect.top - (viewport?.offsetTop ?? 0),
       width: Math.max(1, rect.width),
       height: Math.max(1, rect.height),
-      viewportWidth: innerWidth,
+      scale: window.devicePixelRatio * (viewport?.scale ?? 1),
     };
   }
   let stopped = false;
@@ -59,8 +60,12 @@ export function prepareCameraViewport(element: HTMLElement) {
       await update();
       if (stopped) return;
       observer.observe(element);
+      const shell = element.closest('.app-shell');
+      if (shell) observer.observe(shell);
       window.addEventListener('resize', schedule);
       window.addEventListener('scroll', schedule, true);
+      viewport?.addEventListener('resize', schedule);
+      viewport?.addEventListener('scroll', schedule);
     },
     stop() {
       stopped = true;
@@ -68,6 +73,8 @@ export function prepareCameraViewport(element: HTMLElement) {
       observer.disconnect();
       window.removeEventListener('resize', schedule);
       window.removeEventListener('scroll', schedule, true);
+      viewport?.removeEventListener('resize', schedule);
+      viewport?.removeEventListener('scroll', schedule);
     },
   };
 }

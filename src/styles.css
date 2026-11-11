@@ -92,6 +92,12 @@ input:focus-visible {
   justify-content: space-between;
   gap: 24px;
 }
+.header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
 .brand {
   display: flex;
   align-items: center;
@@ -350,6 +356,7 @@ h2 {
   place-items: center;
   color: #fff;
   position: relative;
+  flex-shrink: 0;
 }
 .swatch.selected::after {
   content: '';
@@ -713,9 +720,15 @@ input[type='color'] {
 }
 .history-toolbar > .g-text-input {
   flex: 1;
+  min-width: 0;
+}
+.history-search-icon {
+  margin-inline: 10px 6px;
+  color: var(--muted);
 }
 .backup-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 .history-filters {
@@ -782,17 +795,45 @@ input[type='color'] {
 .history-item {
   display: flex;
   align-items: center;
-  gap: 16px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 18px;
+  padding-inline-end: 8px;
   background: var(--surface-soft);
-  text-align: left;
-  width: 100%;
   position: relative;
+  transition: transform 180ms ease-out;
+}
+.history-open {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  padding: 18px 8px 18px 18px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  text-align: left;
   touch-action: pan-y pinch-zoom;
   user-select: none;
-  transition: transform 180ms ease-out;
+}
+.history-open:focus-visible {
+  outline-offset: -3px;
+}
+.history-delete {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+}
+.history-delete:hover,
+.history-delete:focus-visible {
+  background: var(--surface);
+  color: var(--danger);
 }
 .history-item.is-dragging {
   transition: none;
@@ -835,10 +876,6 @@ input[type='color'] {
 .history-item-content i {
   font-style: normal;
   padding: 0 5px;
-}
-.history-arrow {
-  color: var(--muted);
-  flex-shrink: 0;
 }
 .favorite-heart {
   color: var(--accent);
@@ -1431,7 +1468,10 @@ body.native-scanning .scan-window video {
     gap: 12px;
   }
   .backup-actions {
-    justify-content: flex-end;
+    justify-content: flex-start;
+  }
+  .backup-actions > .g-button {
+    flex: 1 1 auto;
   }
   .history-filters {
     gap: 0;
@@ -1441,8 +1481,8 @@ body.native-scanning .scan-window video {
     padding: 9px 10px;
     font-size: 10px;
   }
-  .history-item {
-    padding: 14px;
+  .history-open {
+    padding: 14px 6px 14px 14px;
     gap: 12px;
   }
   .history-kind {
@@ -1457,9 +1497,6 @@ body.native-scanning .scan-window video {
   }
   .history-item-content > small {
     font-size: 9px;
-  }
-  .history-arrow {
-    display: none;
   }
   .modal-backdrop {
     padding: max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
@@ -1562,6 +1599,17 @@ body.native-scanning .scan-window video {
   margin-left: auto;
   flex-shrink: 0;
   color: var(--muted);
+}
+.palette-picker {
+  flex: 0 0 auto;
+  width: auto;
+  gap: 6px;
+  padding: 8px;
+}
+.palette-picker > i {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
 }
 .gradient-options {
   display: grid;
@@ -1728,4 +1776,90 @@ body.native-scanning .scan-window video {
 .qr-preview.qr-transparent.checker-dark {
   --checker: #333;
   background-color: #161616;
+}
+
+@media (max-width: 760px) {
+  .app-shell.android-scan {
+    --scan-gutter: 20px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: 100dvh;
+    padding: var(--safe-area-inset-top, env(safe-area-inset-top)) var(--scan-gutter) 0;
+  }
+  .android-scan .app-header {
+    height: 56px;
+    background: var(--surface);
+  }
+  .android-scan > main,
+  .android-scan .scan-screen,
+  .android-scan .scan-page,
+  .android-scan .scan-camera-column {
+    display: flex;
+    flex-direction: column;
+  }
+  .android-scan > main {
+    overflow-y: auto;
+  }
+  .android-scan .scan-screen,
+  .android-scan .scan-page,
+  .android-scan .scan-layout {
+    flex: 1;
+    min-height: 0;
+  }
+  .android-scan .scan-page {
+    padding: 12px 0;
+  }
+  .android-scan .page-heading {
+    margin-bottom: 12px;
+  }
+  .android-scan .scan-layout {
+    gap: 14px;
+  }
+  .android-scan .scan-camera-column {
+    flex: 0 1 auto;
+    min-height: 174px;
+  }
+  .android-scan .scan-window {
+    flex: 1 1 auto;
+    min-height: 112px;
+  }
+  .android-scan .inline-camera-overlay {
+    container-type: size;
+  }
+  .android-scan .viewfinder {
+    width: min(46cqw, 100cqh);
+  }
+  .android-scan .viewfinder > i {
+    width: min(36px, 30%);
+    height: min(36px, 30%);
+  }
+  .android-scan .camera-tools {
+    height: 54px;
+    min-height: 54px;
+    margin-top: 8px;
+  }
+  .android-scan .camera-tools .zoom-control {
+    flex: 1;
+    min-width: 0;
+  }
+  .android-scan .scan-actions {
+    flex-shrink: 0;
+    gap: 10px;
+  }
+  .android-scan .privacy-row {
+    margin-top: 2px;
+    padding-top: 10px;
+  }
+  .android-scan .bottom-nav {
+    position: relative;
+    margin-inline: calc(-1 * var(--scan-gutter));
+    padding-bottom: calc(9px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom)));
+    background: #1b1b1b;
+  }
+}
+
+@media (max-width: 365px) {
+  .app-shell.android-scan {
+    --scan-gutter: 14px;
+  }
 }
