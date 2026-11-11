@@ -4,11 +4,12 @@
 
 [![Сборка APK](https://github.com/dimared/qressi/actions/workflows/android.yml/badge.svg?branch=master)](https://github.com/dimared/qressi/actions/workflows/android.yml)
 [![Публикация веб-версии](https://github.com/dimared/qressi/actions/workflows/pages.yml/badge.svg?branch=master)](https://github.com/dimared/qressi/actions/workflows/pages.yml)
-[![Версия в master](https://img.shields.io/github/package-json/v/dimared/qressi/master?label=version)](package.json)
-[![Последний коммит](https://img.shields.io/github/last-commit/dimared/qressi/master)](https://github.com/dimared/qressi/commits/master/)
+[![Версия релиза](https://img.shields.io/github/v/release/dimared/qressi?label=version)](https://github.com/dimared/qressi/releases/latest)
+[![Дата релиза](https://img.shields.io/github/release-date/dimared/qressi?display_date=published_at)](https://github.com/dimared/qressi/releases/latest)
 [![Лицензия MIT](https://img.shields.io/github/license/dimared/qressi)](LICENSE)
 
 [![Открыть веб-версию](https://img.shields.io/badge/Открыть_веб--версию-2563eb)](https://dimared.github.io/qressi/)
+[![Скачать APK](https://img.shields.io/badge/Скачать_APK-15803d)](https://github.com/dimared/qressi/releases/latest/download/QRessi.apk)
 
 Сканер и редактор QR-кодов для Android с веб-версией. React, TypeScript, Gravity UI, Capacitor и AI. Без аккаунта и собственного сервера.
 
