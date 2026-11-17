@@ -55,20 +55,22 @@ export function makeQr(data: string, style: QrStyle = DEFAULT_STYLE, size = 320)
   const bytes = new TextEncoder().encode(data);
   const encoded = Array.from(bytes, (byte) => String.fromCharCode(byte)).join('');
   const qr = new QRCodeStyling({
-    // Four quiet-zone modules even for the smallest (21-module) QR version.
     width: size,
     height: size,
     type: 'svg',
     data: encoded,
-    margin: Math.ceil((size * 4) / 29),
+    margin: 0,
     qrOptions: {errorCorrectionLevel: 'H', ...(encoded !== data ? {mode: 'Byte' as const} : {})},
     dotsOptions: {
       type: style.dots,
       color: style.color,
       gradient: gradientOptions(style.color, style.foregroundGradient),
+      // Integer rounding shrinks dense matrices and turns the unused space
+      // into extra padding. SVG can keep the exact module dimensions.
+      roundSize: false,
     },
     // Keep finder patterns conventional even when data modules are circular.
-    cornersSquareOptions: {type: style.dots === 'rounded' ? 'extra-rounded' : 'square', color: style.color},
+    cornersSquareOptions: {type: 'square', color: style.color},
     cornersDotOptions: {type: 'square', color: style.color},
     backgroundOptions: {
       color: style.transparent ? 'transparent' : style.background,
@@ -82,51 +84,56 @@ export function makeQr(data: string, style: QrStyle = DEFAULT_STYLE, size = 320)
       crossOrigin: 'anonymous',
     },
   });
-  if (style.dots === 'dots') {
-    qr.applyExtension((svg) => {
-      // The library exposes the generated matrix. Preserve timing/alignment
-      // modules as squares: circular 5×5 alignment patterns confuse decoders
-      // on some larger QR versions, even with excellent contrast.
-      const matrix = qr._qr;
-      if (!matrix) return;
-      const count = matrix.getModuleCount();
-      const protectedCells = new Set<number>();
-      for (let centerRow = 2; centerRow < count - 2; centerRow++) {
-        for (let centerCol = 2; centerCol < count - 2; centerCol++) {
-          let alignment = true;
-          for (let dy = -2; dy <= 2 && alignment; dy++) {
-            for (let dx = -2; dx <= 2; dx++) {
-              if (
-                matrix.isDark(centerRow + dy, centerCol + dx) !==
-                (Math.max(Math.abs(dx), Math.abs(dy)) !== 1)
-              ) {
-                alignment = false;
-                break;
-              }
-            }
-          }
-          if (alignment) {
-            for (let dy = -2; dy <= 2; dy++) {
-              for (let dx = -2; dx <= 2; dx++) protectedCells.add((centerRow + dy) * count + centerCol + dx);
+  // Use four actual modules on each side, including for dense QR versions.
+  const moduleCount = qr._qr?.getModuleCount() ?? 21;
+  const margin = (size * 4) / (moduleCount + 8);
+  qr.update({margin});
+  qr.applyExtension((svg) => {
+    // Keep antialiasing on curved modules when using fractional dimensions.
+    if (style.dots !== 'square') svg.removeAttribute('shape-rendering');
+    if (style.dots !== 'dots') return;
+    // The library exposes the generated matrix. Preserve timing/alignment
+    // modules as squares: circular 5×5 alignment patterns confuse decoders
+    // on some larger QR versions, even with excellent contrast.
+    const matrix = qr._qr;
+    if (!matrix) return;
+    const count = matrix.getModuleCount();
+    const protectedCells = new Set<number>();
+    for (let centerRow = 2; centerRow < count - 2; centerRow++) {
+      for (let centerCol = 2; centerCol < count - 2; centerCol++) {
+        let alignment = true;
+        for (let dy = -2; dy <= 2 && alignment; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
+            if (
+              matrix.isDark(centerRow + dy, centerCol + dx) !==
+              (Math.max(Math.abs(dx), Math.abs(dy)) !== 1)
+            ) {
+              alignment = false;
+              break;
             }
           }
         }
+        if (alignment) {
+          for (let dy = -2; dy <= 2; dy++) {
+            for (let dx = -2; dx <= 2; dx++) protectedCells.add((centerRow + dy) * count + centerCol + dx);
+          }
+        }
       }
-      const moduleSize = Math.floor((size - Math.ceil((size * 4) / 29) * 2) / count);
-      const origin = Math.floor((size - count * moduleSize) / 2);
-      for (const circle of svg.querySelectorAll('clipPath[id^="clip-path-dot-color-"] circle')) {
-        const x = Number(circle.getAttribute('cx')) - moduleSize / 2;
-        const y = Number(circle.getAttribute('cy')) - moduleSize / 2;
-        const col = Math.round((x - origin) / moduleSize),
-          row = Math.round((y - origin) / moduleSize);
-        if (row !== 6 && col !== 6 && !protectedCells.has(row * count + col)) continue;
-        const square = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        for (const [key, value] of Object.entries({x, y, width: moduleSize, height: moduleSize}))
-          square.setAttribute(key, String(value));
-        circle.replaceWith(square);
-      }
-    });
-  }
+    }
+    const moduleSize = (size - margin * 2) / count;
+    const origin = margin;
+    for (const circle of svg.querySelectorAll('clipPath[id^="clip-path-dot-color-"] circle')) {
+      const x = Number(circle.getAttribute('cx')) - moduleSize / 2;
+      const y = Number(circle.getAttribute('cy')) - moduleSize / 2;
+      const col = Math.round((x - origin) / moduleSize),
+        row = Math.round((y - origin) / moduleSize);
+      if (row !== 6 && col !== 6 && !protectedCells.has(row * count + col)) continue;
+      const square = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      for (const [key, value] of Object.entries({x, y, width: moduleSize, height: moduleSize}))
+        square.setAttribute(key, String(value));
+      circle.replaceWith(square);
+    }
+  });
   return qr;
 }
 

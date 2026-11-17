@@ -1301,7 +1301,7 @@ input[type='color'] {
 .zoom-control input:disabled {
   opacity: 0.4;
 }
-.zoom-control output {
+.zoom-control .zoom-reset {
   font-size: 12px;
   min-width: 33px;
   font-variant-numeric: tabular-nums;

@@ -475,7 +475,7 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
             >
               Конфиденциальность
             </Button>
-            <div className="about-version">Версия 1.0.0</div>
+            <div className="about-version">Версия 1.0.1</div>
           </section>
         </div>
       )}

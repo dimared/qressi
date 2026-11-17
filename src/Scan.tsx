@@ -54,7 +54,8 @@ export default function Scan({
   const readingImage = useRef(false);
   foundCallback.current = onFound;
   privateRef.current = privateScan;
-  const running = active && foreground && cameraEnabled && !captured && !busy && !choices.length && !droppedImage;
+  const running =
+    active && foreground && cameraEnabled && !captured && !busy && !choices.length && !droppedImage;
 
   function openCamera() {
     setCameraIssue('');
@@ -204,6 +205,13 @@ export default function Scan({
     }
   }
 
+  function stepZoom(direction: -1 | 1) {
+    if (!zoom) return;
+    const next = Math.round((zoom.value + direction * 0.5) * 100) / 100;
+    const crossesOne = (zoom.value - 1) * (next - 1) < 0;
+    void changeZoom(Math.min(zoom.max, Math.max(zoom.min, crossesOne ? 1 : next)));
+  }
+
   const readFile = useCallback(
     async (file?: File) => {
       if (!file || readingImage.current) return;
@@ -303,7 +311,7 @@ export default function Scan({
                 <button
                   aria-label="Уменьшить масштаб"
                   disabled={!ready || zoom.value <= zoom.min}
-                  onClick={() => void changeZoom(Math.max(zoom.min, zoom.value - 0.5))}
+                  onClick={() => stepZoom(-1)}
                 >
                   <Minus size={18} />
                 </button>
@@ -317,11 +325,19 @@ export default function Scan({
                   value={zoom.value}
                   onChange={(event) => void changeZoom(Number(event.target.value))}
                 />
-                <output>{zoom.value.toLocaleString('ru-RU', {maximumFractionDigits: 1})}×</output>
+                <button
+                  className="zoom-reset"
+                  aria-label="Вернуть масштаб 1×"
+                  title="Вернуть масштаб 1×"
+                  disabled={!ready || zoom.min > 1 || zoom.max < 1}
+                  onClick={() => void changeZoom(1)}
+                >
+                  {zoom.value.toLocaleString('ru-RU', {maximumFractionDigits: 1})}×
+                </button>
                 <button
                   aria-label="Увеличить масштаб"
                   disabled={!ready || zoom.value >= zoom.max}
-                  onClick={() => void changeZoom(Math.min(zoom.max, zoom.value + 0.5))}
+                  onClick={() => stepZoom(1)}
                 >
                   <Plus size={18} />
                 </button>
