@@ -8,6 +8,7 @@ import {loadHistory, saveHistory} from './storage';
 import type {CodeFormat, EditorDraft, Entry, Tab} from './types';
 import {useImageDrop} from './useImageDrop';
 
+const AppUpdate = lazy(() => import('./AppUpdate'));
 const Create = lazy(() => import('./Create'));
 const Detail = lazy(() => import('./Detail'));
 const History = lazy(() => import('./History'));
@@ -45,6 +46,7 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
   const [toastAction, setToastAction] = useState<ToastAction>();
   const [about, setAbout] = useState(false);
   const [privacy, setPrivacy] = useState(false);
+  const [updateCheckRequest, setUpdateCheckRequest] = useState(0);
   const [droppedImage, setDroppedImage] = useState<File>();
   const toastTimer = useRef(0);
   const loading = useRef<Promise<void> | null>(null);
@@ -475,7 +477,19 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
             >
               Конфиденциальность
             </Button>
-            <div className="about-version">Версия 1.0.1</div>
+            <div className="about-version">Версия 1.0.2</div>
+            {separateEditor && !isEditorScreen && (
+              <Button
+                view="flat"
+                size="l"
+                onClick={() => {
+                  setAbout(false);
+                  setUpdateCheckRequest((request) => request + 1);
+                }}
+              >
+                Проверить обновления
+              </Button>
+            )}
           </section>
         </div>
       )}
@@ -486,6 +500,15 @@ export default function App({editorLaunch}: {editorLaunch?: EditorLaunch}) {
               setPrivacy(false);
               setAbout(true);
             }}
+          />
+        </Suspense>
+      )}
+      {separateEditor && !isEditorScreen && (
+        <Suspense fallback={null}>
+          <AppUpdate
+            hidden={!!current || about || privacy || editorOpening || !!toast}
+            checkRequest={updateCheckRequest}
+            notify={notify}
           />
         </Suspense>
       )}

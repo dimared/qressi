@@ -1108,6 +1108,41 @@ input[type='color'] {
   align-items: center;
   gap: 15px;
 }
+.app-update {
+  position: fixed;
+  z-index: 150;
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 28px));
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px #0006;
+}
+.app-update p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.app-update .app-update-error {
+  margin-top: 8px;
+  color: var(--danger);
+  font-size: 12px;
+}
+.app-update progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  margin-top: 12px;
+  accent-color: var(--accent);
+}
+.app-update-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
 .toast button {
   border: 0;
   background: none;

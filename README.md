@@ -60,6 +60,8 @@ APK: `android/app/build/outputs/apk/debug/app-debug.apk`. Android application ID
 
 GitHub Actions также собирает debug APK при push в `master`; файл доступен в артефактах workflow **Build Android APK** в течение 7 дней.
 
+Android-приложение проверяет GitHub Releases не чаще раза в сутки и предлагает скачать новую версию. Ручная проверка доступна в «О приложении». После скачивания Android показывает системное подтверждение установки. Для обновления поверх установленной версии APK должен иметь ту же подпись. Релизные APK публикуются под именем `QRessi.apk` с тегом вида `v1.0.2`.
+
 Debug-ключ создаётся Android-инструментами локально. Production-ключ, пароли подписи и сертификаты не входят в репозиторий. Для публикации в магазине настройте release-подпись локально в Android Studio.
 
 ## GitHub Pages

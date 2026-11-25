@@ -10,6 +10,7 @@ import com.getcapacitor.PluginHandle;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
+        registerPlugin(AppUpdatePlugin.class);
         registerPlugin(EditorScreenPlugin.class);
         registerPlugin(FileExportPlugin.class);
         registerPlugin(InstalledAppsPlugin.class);
